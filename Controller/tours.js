@@ -92,9 +92,9 @@ const getMonthlyPlans=async (req,res,next)=>{
             }
             },
             {$group:{
-                _id:{$month:'$startDates'},
+                _id:{$month:'$startDates'}, //This return the month no from the date
                 numTourStarts:{$sum:1},
-                tours:{$push:'$name'}
+                tours:{$push:'$name'} // This makes the array
             }
         },
         {
@@ -102,16 +102,15 @@ const getMonthlyPlans=async (req,res,next)=>{
         },
         {
             $project:{
-                _id:0
+                _id:0 //This exclude the _id field from the documents
             }
         },
         {
-            $sort:{numTourStarts:-1}
+            $sort:{numTourStarts:-1} //Descending Order
         },
         {
-            $limit:6
+            $limit:6 //Only 6 documents show
         }
-
         ])
         res.status(200).json({
             status:'fail',
