@@ -44,6 +44,89 @@ const getParticularTour=async (req,res,next)=>{
     })
 }
 
+const getTourStats=async (req,res,next)=>{
+    try{
+        const stats=await Tour.aggregate([
+            {
+                $match:{ratingAverage:{$gte:4.5}}
+            },
+            {
+                $group:{
+                    _id:{$toUpper:'$difficulty'}, //means group the difficulty accordign to the values it will show thre documents one stats for Medium, Easy and Hard
+                    numTours:{$sum:1},
+                    numRatings:{$sum:'$ratingQuantity'},
+                    avgRatings:{$avg:'$ratingAverage'},
+                    avgPrice:{$avg:'$price'},
+                    minPrice:{$min:'$price'},
+                    maxPrice:{$max:'$price'},
+                }
+            },
+            {
+                $sort:{
+                    avgPrice:1
+                }
+            },
+            {
+                $match:{_id:{$ne:'EASY'}}
+            }
+        ])
+    }
+    catch(err){
+
+    }
+}
+
+const getMonthlyPlans=async (req,res,next)=>{
+    try{
+        const year=req.query.year*1
+        const plan=await Tour.aggregate([
+            {
+                $unwind:'$startDates' //if there is the field having value of array in once document so this will show us document for each element in the array 
+            },
+            {
+            $match:{
+                startDates:{
+                    $gte:new  Date(`${year}-01-01`),
+                    $lte:new Date(`${year}-12-31`)
+                }
+            }
+            },
+            {$group:{
+                _id:{$month:'$startDates'},
+                numTourStarts:{$sum:1},
+                tours:{$push:'$name'}
+            }
+        },
+        {
+            $addFields:{month:'$_id'}
+        },
+        {
+            $project:{
+                _id:0
+            }
+        },
+        {
+            $sort:{numTourStarts:-1}
+        },
+        {
+            $limit:6
+        }
+
+        ])
+        res.status(200).json({
+            status:'fail',
+            data:{
+                plan
+            }
+        })
+    }
+    catch(err){
+        res.status(404).json({
+            status:'fail',
+            message:err
+        })
+    }
+}
 const getAllTours=async (req,res,next)=>{
     let data
     // 1) filtering
@@ -170,4 +253,6 @@ exports.getParticularTour=getParticularTour
 exports.updateParticularTour=updateParticularTour
 exports.deleteParticularTour=deleteParticularTour
 exports.getTourByUser=getTourByUser
+exports.getTourStats=getTourStats
 exports.createTour=createTour
+exports.getMonthlyPlans=getMonthlyPlans

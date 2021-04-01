@@ -8,6 +8,8 @@ const route=express.Router();
 route.get('/',tourRoutes.getAllTours);
 route.get('/:pid',tourRoutes.getParticularTour);
 route.get('/user/:uid',tourRoutes.getTourByUser);
+route.get('/get-tour-stats',tourRoutes.getTourStats);
+route.get('/getMonthlyPlans/:year',tourRoutes.getTourStats);
 route.use(checkAuth);
 route.patch('/:pid',[
     check('title').
