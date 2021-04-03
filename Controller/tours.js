@@ -109,7 +109,7 @@ const getMonthlyPlans=async (req,res,next)=>{
             $sort:{numTourStarts:-1} //Descending Order
         },
         {
-            $limit:6 //Only 6 documents show
+            $limit:12 //Only 6 documents show
         }
         ])
         res.status(200).json({
@@ -141,7 +141,7 @@ const getAllTours=async (req,res,next)=>{
     try{
         data=await Tour.find(JSON.parse(queryStr));
         //2) Sorting
-        if(req?.query?.sort){
+        if(req.query.sort){
             const sortBy=req.query.sort.split(',').join(' ')
             //So in API (http://api/tours?sort=price,ratingAverage)
             //if 2 doc have same price so it will sort acc to ratingAverage
@@ -152,7 +152,7 @@ const getAllTours=async (req,res,next)=>{
             //This will sort according to the descending order
         }
         // 3) Fields Limiting: Means Show which fields in the document to res
-        if(req?.query?.sort){
+        if(req.query.sort){
             const fields=req.query.fields.split(',').join(" ")
             data=data.select(fields)
             // So in the API http://tours?fields=price, -duration
