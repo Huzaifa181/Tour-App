@@ -113,17 +113,15 @@ const getMonthlyPlans=async (req,res,next)=>{
         }
         ])
         res.status(200).json({
-            status:'fail',
+            status:'success',
             data:{
                 plan
             }
         })
     }
     catch(err){
-        res.status(404).json({
-            status:'fail',
-            message:err
-        })
+        const error=new httpError("Fail",404)
+        return next(error)
     }
 }
 const getAllTours=async (req,res,next)=>{
@@ -151,6 +149,7 @@ const getAllTours=async (req,res,next)=>{
             data=data.sort('-createdAt')
             //This will sort according to the descending order
         }
+
         // 3) Fields Limiting: Means Show which fields in the document to res
         if(req.query.sort){
             const fields=req.query.fields.split(',').join(" ")
@@ -240,10 +239,8 @@ const deleteParticularTour=async (req,res,next)=>{
         })
     }
     catch(err){
-        res.status(400).json({
-            status:'fail',
-            message:"Error in Deleting Tour"
-        })
+        const error=new httpError("Error in Deleting Tour",400)
+        return next(error)
     }
 }
 

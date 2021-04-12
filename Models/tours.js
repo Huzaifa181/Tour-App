@@ -1,6 +1,7 @@
 // const { truncate } = require('fs/promises')
 const slugify=require('slugify')
 const mongoose =require('mongoose')
+const validator =require('validator')
 tourSchema=new mongoose.Schema({
     name:{
         type:String,
@@ -9,6 +10,7 @@ tourSchema=new mongoose.Schema({
        trim:true,
        maxlength:[40,'A name must have 40 charcter or less'],
        minlength:[2,'A name must have 2 charcter or more'],
+    //    validator:[validator.isAlpha,"Tour Name must only ontain alphabets"]
     },
     duration:{
         type:String,
@@ -43,7 +45,15 @@ tourSchema=new mongoose.Schema({
         required:[true,"A tour must have a price"]
     },
     priceDiscount:{
-        type:Number,  
+        type:Number,
+        validate:{
+            validator:function(val){
+                // this only point to current doc on NEW document creation 
+                return val<this.price
+            },
+            message:`Discount price ({VALUE}) should be below regular price`
+
+        }
     },
     summary:{
         type:String,  
@@ -82,7 +92,7 @@ tourSchema=new mongoose.Schema({
     toJSON:{virtuals:true},
     toObject:{virtuals:true},
 })
-//virtual property meand make the field by calculation of the other field
+//virtual property means make the field by calculation of the other field
 tourSchema.virtual('durationWeeks').get(function(){
     return this.duration/7
 })

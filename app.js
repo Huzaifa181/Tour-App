@@ -28,10 +28,10 @@ app.use((req,res,next)=>{
 
 app.use('/api/tours',tourRoutes)
 app.use('/api/users',userRoutes)
-app.use((req,res,next)=>{
-    throw new httpError("Could Not Find this Route",404);
+app.all('*',(req,res,next)=>{
+    throw new httpError(`Could Not Find ${req.originalUrl} Route`,404);
 })
-
+ 
 app.use((error,req,res,next)=>{
     if(req.file){
         fs.unlink(req.file.path,(err)=>{
