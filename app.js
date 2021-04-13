@@ -11,13 +11,14 @@ const dotenv=require('dotenv');
 const errorController=require('./Controller/error')
 // To handled uncaughtException like programming error in the app.
 process.on('uncaughtException',err=>{
+    console.log(err)
     console.log("Uncaught Exception!, Shutting Down.....")
     console.log(err.name,err.message);
         //For Success write process.exit(0) server
         //For Uncaught exception write process.exit(1) server
     process.exit(1)
     })
-dotenv.config({path:'./config.env'})
+dotenv.config({path:'./.env'})
 connectDb();
 
 const app=express();
@@ -42,8 +43,8 @@ app.use('/api/users',userRoutes)
 app.all('*',(req,res,next)=>{
     throw new httpError(`Could Not Find ${req.originalUrl} Route`,404);
 })
- 
-app.use(errorController(err,req,res,next))
+
+app.use(errorController)
 const server=app.listen(5000)
 // To handled unhanledRejection like disconnection of mongodb server so we have to shutdown our app for this kind of error, However nodejs might be handled on production as to restart app.
 process.on('unhandledRejection',err=>{
