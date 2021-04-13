@@ -6,7 +6,18 @@ const tourRoutes= require("./Routes/tour-routes");
 const httpError = require("./Models/http-error");
 const fs=require('fs');
 const path=require('path');
+const dotenv=require('dotenv');
 
+const errorController=require('./Controller/error')
+// To handled uncaughtException like programming error in the app.
+process.on('uncaughtException',err=>{
+    console.log("Uncaught Exception!, Shutting Down.....")
+    console.log(err.name,err.message);
+        //For Success write process.exit(0) server
+        //For Uncaught exception write process.exit(1) server
+    process.exit(1)
+    })
+dotenv.config({path:'./config.env'})
 connectDb();
 
 const app=express();
@@ -32,18 +43,15 @@ app.all('*',(req,res,next)=>{
     throw new httpError(`Could Not Find ${req.originalUrl} Route`,404);
 })
  
-app.use((error,req,res,next)=>{
-    if(req.file){
-        fs.unlink(req.file.path,(err)=>{
-            console.log(err)
-        })
-    }
-    if(res.headerSent){
-        next(error)
-    }
-    res.status(error.code || 500)
-    res.json({
-        message:error.message || "Some thing Wrong"}
-    )
+app.use(errorController(err,req,res,next))
+const server=app.listen(5000)
+// To handled unhanledRejection like disconnection of mongodb server so we have to shutdown our app for this kind of error, However nodejs might be handled on production as to restart app.
+process.on('unhandledRejection',err=>{
+    console.log("Unhandled Rejection!, Shutting Down.....")
+    console.log(err.name,err.message);
+    server.close(()=>{
+        //For Success write process.exit(0)
+        //For Uncoaught exception write process.exit(1)
+        process.exit(1)
+    })
 })
-app.listen(5000)
