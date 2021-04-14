@@ -46,6 +46,7 @@ tourSchema=new mongoose.Schema({
     },
     priceDiscount:{
         type:Number,
+        // This pnly work for new User or save not run on update
         validate:{
             validator:function(val){
                 // this only point to current doc on NEW document creation 

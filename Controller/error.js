@@ -16,6 +16,14 @@ const handleValidationErrordb=err=>{
         const message=`Invalid Input Data. ${errors.join('. ')}` 
         return new httpError(message,400)
 }
+const handleJWTError=()=>{
+        const message=`Invalid Token. Please Login Again` 
+        return new httpError(message,401)
+}
+const handleJWTExpiredError=()=>{
+        const message=`Your token has expired! Please login Again` 
+        return new httpError(message,401)
+}
 const sendErroDev=(err,res)=>{
     res.status(err.statusCode).json({
         status:err.status,
@@ -78,6 +86,14 @@ module.exports=(err,req,res,next)=>{
         // For mongoDb error for handeling mongoose validation error
         if(error.name=='ValidationError'){
             error=handleValidationErrordb(error)
+        }
+        // For jsonwebtoken error like Invalid Token
+        if(error.name=='JsonWebTokenError'){
+            error=handleJWTError()
+        }
+        // For jsonwebtoken error like Token Expired Error
+        if(error.name=='TokenExpiredError'){
+            error=handleJWTExpiredError()
         }
         sendErroProd(err,res)
     }

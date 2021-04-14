@@ -25,7 +25,7 @@ const getAllUsers=async (req,res,next)=>{
 }
 
 const signUp=async (req,res,next)=>{
-    const {name,email,password}=req.body
+    const {name,email,password, passwordConfirm}=req.body
     console.log(name,email,password)
     let hasUser;
     try{
@@ -39,23 +39,26 @@ const signUp=async (req,res,next)=>{
         const error=new httpError("User Already Exist",422)
         return next(error)
     }
-    let hashedPassword;
-    try{
-        hashedPassword=await bcrypt.hash(password,12)
-    }
-    catch(err){
-        const error= new httpError("Could not create user, seomething went wrong",500)
-        return next(error) 
-    }
+    // Encrypted Password is in the modal of user schema
+
+
+    // let hashedPassword;
+    // try{
+    //     hashedPassword=await bcrypt.hash(password,12)
+    // }
+    // catch(err){
+    //     const error= new httpError("Could not create user, seomething went wrong",500)
+    //     return next(error) 
+    // }
 
     let result;
     try{
         const createdUser=await new Users({
             name,
             email,
-            password:hashedPassword,
-            image:`${req.file.path}`,
-            places:[],
+            password:password,
+            passwordConfirm:passwordConfirm,
+            photo:`${req.file.path}`,
         })
         result=await createdUser.save();
     }
@@ -83,8 +86,30 @@ const signUp=async (req,res,next)=>{
 
     res.status(200).json({
         message:"User Created Successfully",
-        data:{userId:result._id, email:result.email,token:token, images: result.image, places:result.places}
+        data:{userId:result._id, email:result.email,token:token, photo: result.photo}
     })
+}
+const forgotPassword=async (req,res,next)=>{
+    const {email}=req.body
+    const error=validationResult(req)
+    if(!error){
+        console.log("error")
+        const error=new httpError("Email must Required",400)
+        return next(error)
+    }
+
+    //1) get user based on Posted email
+    const user=await Users.findOne({email:email})
+    if(!user){
+        const error=new httpError("There is no User with this email address",400)
+        return next(error)
+    }
+
+    //2) Generate te random reset token
+    //createPasswordRestriction is in the user schema
+    const resetToken=user.createPasswordRestriction();
+    //validateBeforeSave this is for when we save so by default it check all the required field fron sceme but in create reset token we only need email
+    await user.save({validateBeforeSave:false})
 }
 const login=async (req,res,next)=>{
     const {email,password}=req.body
@@ -108,22 +133,23 @@ const login=async (req,res,next)=>{
         const error=new httpError("User Doesn't Exist",500)
         return next(error)
     }
-    let isValidPassword;
-    try{
-        isValidPassword=await bcrypt.compare(password, existingUser.password)
-    }
-    catch(err){
-        const error=new httpError("Could not login, Please Input Password Again",500)
-        return next(error)
-    }
-    if(!isValid){
+    // try{
+        //     isValidPassword=await bcrypt.compare(password, existingUser.password)
+        // }
+        // catch(err){
+            //     const error=new httpError("Could not login, Please Input Password Again",500)
+            //     return next(error)
+            // }
+    // We confirm the password on Model of User by build the mongoose function see in the userSchemema file
+    let isValidPassword=existingUser.correctPassword(password,existingUser.password)
+    if(!isValidPassword){
         console.log("error")
         const error=new httpError("Invalid Password",500)
         return next(error)
     }
     let token;
     try{
-        jwt.sign({
+        token=jwt.sign({
             userId:existingUser._id,
             email:existingUser.email
         },
@@ -139,9 +165,10 @@ const login=async (req,res,next)=>{
     }
     res.status(200).json({
         message:"LoggedIn Successfully",
-        data:{userId:result._id, email:result.email,token:token, images: result.image, places:result.places}
+        data:{userId:existingUser._id, email:existingUser.email,token:token, images: existingUser.image}
     })
 }
 exports.getAllUsers=getAllUsers
 exports.signUp=signUp
 exports.login=login
+exports.forgotPassword=forgotPassword

@@ -27,6 +27,11 @@ route.post('/login',
     not().
     isEmpty(),
 ],userRoutes.login)
+route.post('/forgotPassword',
+[
+    check('email').
+    isEmail(),
+],userRoutes.forgotPassword)
 
 
 module.exports=route
