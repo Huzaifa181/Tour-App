@@ -1,4 +1,4 @@
-const httpError=require('../Models/http-error');
+const httpError=require('../utils/http-error');
 
 exports.restrictTo=(...roles)=>{
     return(req,res,next)=>{

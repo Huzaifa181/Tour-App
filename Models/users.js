@@ -49,20 +49,25 @@ userSchema.pre('save', async function(next){
     if(!this.isModified('password')) return next();
 
     //Hash the password with cost of 12
-    this.password=await bycrypt.hash(this.password,12)
+    this.password=await bcrypt.hash(this.password,12)
 
     //Delete Password Confirm Field
     this.passwordConfirm=undefined;
     next()
 })
 
-
+//for changing passwordChangeAt property see in the resetPassword route
+userSchema.pre('save',function(next){
+    if(!this.isModified('password') || this.isNew) return next()
+    //-1000 is the small hack for if some time give error in reset password for 1 second
+    this.passwordChangedAt=Date.now()-1000
+})
 //Compare Hash Password from db with the user Input Password
 userSchema.methods.correctPassword=async function(
     candidatePassword,
     userPassword
 ){
-    return await bycrypt.compare(candidatePassword,userPassword)
+    return await bcrypt.compare(candidatePassword,userPassword)
 }
 
 // For Check if the user Change his password... For invalid the jwt token see in check-auth file in middlewares
@@ -79,13 +84,13 @@ userSchema.methods.changePasswordAfter=function(JWTTimestamp){
 }
 
 // For Creating the password reset token when user click on the forgot password check in the forgot password route so that we send the token to email of the user
+// see in the forgot password route
 userSchema.methods.createPasswordRestriction=function(JWTTimestamp){
     const resetToken=crypto.randomBytes(32).toString('hex');
     this.passwordResetToken=crypto
     .createHash('sha256')
     .update(resetToken)
     .digest('hex')
-    
     this.passwordResetExpires=Date.now()+10*60*1000
     return resetToken
 }

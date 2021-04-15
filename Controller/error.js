@@ -1,4 +1,4 @@
-const httpError=require('../Models/http-error')
+const httpError=require('../utils/http-error')
 const handleCastErrordb=err=>{
         // For mongoDb error like in nschema or invalud input or ID's
         const message=`Invalid ${err.path}: ${err.value}` 

@@ -1,4 +1,4 @@
-const httpError=require("../Models/http-error")
+const httpError=require("../utils/http-error")
 const Tour=require('../Models/tours')
 const {validationResult}=require("express-validator")
 const User=require('../Models/users')

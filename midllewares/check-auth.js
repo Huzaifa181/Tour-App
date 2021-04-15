@@ -1,4 +1,4 @@
-const httpError=require('../Models/http-error');
+const httpError=require('../utils/http-error');
 const User=require('../Models/users');
 const jwt=require('jsonwebtoken');
 const {promisify}=require('util');
