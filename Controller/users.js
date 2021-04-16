@@ -7,6 +7,15 @@ const sendEmail=require('../utils/email')
 const bcrypt=require('bcryptjs')
 const {validationResult}=require("express-validator")
 
+//Send jwt to cookies automatically so that on every request browser send cookie with every request
+    const sendCookie=(token)=>{
+        const cookieOptions={
+            expires: new Date(Date.now()+1*60*60*1000), // 1 hour to millisecond bcs we also expires the jwt in one hour
+            httpOnly:true // so that hacker can not modify or access the cookies
+        }
+        if(process.env.NODE_ENV=='production') cookieOptions.secure=true // for https only
+        res.cookie('jwt',token, cookieOptions)
+    }
 const getAllUsers=async (req,res,next)=>{
     let users
     try{
@@ -71,7 +80,7 @@ const signUp=async (req,res,next)=>{
 
     let token;
     try{
-        token=jwt.sign({
+        token=await jwt.sign({
             userId:result._id,
             email:result.email
         },
@@ -80,6 +89,7 @@ const signUp=async (req,res,next)=>{
             expiresIn:'1h'
         }
         )
+        sendCookie(token)
     }
     catch(err){
          const error=new httpError("Signing Up failed, Please Try Again Later")
@@ -130,7 +140,7 @@ const login=async (req,res,next)=>{
     }
     let token;
     try{
-        token=jwt.sign({
+        token=await jwt.sign({
             userId:existingUser._id,
             email:existingUser.email
         },
@@ -139,6 +149,7 @@ const login=async (req,res,next)=>{
             expiresIn:'1h'
         }
         )
+        sendCookie(token)
     }
     catch(err){
          const error=new httpError("Signing Up failed, Please Try Again Later")
@@ -229,7 +240,7 @@ const resetPassword=async (req, res, next)=>{
     //4) Log the user in, send JWT
     let token;
     try{
-        token=jwt.sign({
+        token=await jwt.sign({
             userId:result._id,
             email:result.email
         },
@@ -238,6 +249,7 @@ const resetPassword=async (req, res, next)=>{
             expiresIn:'1h'
         }
         )
+        sendCookie(token)
     }
     catch(err){
          const error=new httpError("Reset Password Failed, Please Try Again Later")
@@ -275,7 +287,7 @@ const updatePassword=async (req,res,next)=>{
     //4) Log user in send JWT
     let token;
     try{
-        token=jwt.sign({
+        token=await jwt.sign({
             userId:result._id,
             email:result.email
         },
@@ -284,6 +296,7 @@ const updatePassword=async (req,res,next)=>{
             expiresIn:'1h'
         }
         )
+        sendCookie(token)
     }
     catch(err){
          const error=new httpError("Reset Password Failed, Please Try Again Later")
@@ -295,9 +308,52 @@ const updatePassword=async (req,res,next)=>{
         token
     })
 }
+// for name and email address
+// There must be different route for user update data and password
+const updateMe=async (req,res,next)=>{
+        // 1) create error if user POSTs password data
+        if(req.body.password || req.body.passwordConfirm){
+            const error=new httpError("This route is not for Update Password. Please use another route updatePassword",400)
+            return next(error)
+        }
+
+        //2) Filtered Out unwanted field nammes that are not allowed to be updated
+        const filteredBody=filterObj(req.body,'name','email')
+
+        // 3) Update user document
+        const updateUser=await Users.findByIdAndUpdate(req.user.id,filteredBody,{
+            new:true,
+            runValidators:true
+        })
+        res.status(200)
+        .json({
+            status:'success',
+            data:{
+                user:updatedUser
+            }
+        })
+}
+const filterObj=(obj,...allowedFields)=>{
+    const newObj={}
+    Object.keys(obj).forEach(el=>{
+        if(allowedFields.includes(el)) newObj[el]=obj[el]
+    })
+    return newObj;
+}
+const deleteMe=async (req,res,next)=>{
+    // We cant delete teh user from the database but inactive user from database
+    await Users.findByIdAndUpdate(req.user.id,{active:false})
+    res.status(204)
+        .json({
+            status:'success',
+            data:null
+        })
+}
 exports.getAllUsers=getAllUsers
 exports.signUp=signUp
 exports.login=login
 exports.forgotPassword=forgotPassword
 exports.resetPassword=resetPassword
 exports.updatePassword=updatePassword
+exports.updateMe=updateMe
+exports.deleteMe=deleteMe

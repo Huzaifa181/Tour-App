@@ -40,6 +40,11 @@ const userSchema=new mongoose.Schema({
     passwordChangedAt:Date,
     passwordResetToken:String,
     passwordResetExpires:Date,
+    active:{
+        type:Boolean,
+        default:true,
+        select:false
+    }
 })
 
 userSchema.plugin(uniqueValidator)
@@ -62,6 +67,14 @@ userSchema.pre('save',function(next){
     //-1000 is the small hack for if some time give error in reset password for 1 second
     this.passwordChangedAt=Date.now()-1000
 })
+
+//Show User which has property active:true
+userSchema.pre('/^find/',function(next){
+    //this points to the current query
+    this.find({active:{$ne:false}})
+    next();
+})
+
 //Compare Hash Password from db with the user Input Password
 userSchema.methods.correctPassword=async function(
     candidatePassword,

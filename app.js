@@ -1,12 +1,28 @@
 const connectDb=require('./config/db')
 const express= require("express");
+const rateLimit= require("express-rate-limit");
 const bodyParser= require("body-parser");
 const userRoutes= require("./Routes/user-routes");
 const tourRoutes= require("./Routes/tour-routes");
 const httpError = require("./utils/http-error");
 const fs=require('fs');
 const path=require('path');
+const helmet=require('helmet');
 const dotenv=require('dotenv');
+
+const app=express();
+
+// global middlewares
+// For security http headers
+app.use(helmet())
+
+// raatelimit so that user cannot make too many request in particuklar time
+const limiter=rateLimit({
+    max:100, // means allow 100 req in 1 hour
+    windowMs:60*60*1000, // means 1hour
+    message:'Too many request from this IP, please try again in an hour'
+})
+app.use('/api',limiter)
 
 const errorController=require('./Controller/error')
 // To handled uncaughtException like programming error in the app.
@@ -20,8 +36,6 @@ process.on('uncaughtException',err=>{
     })
 dotenv.config({path:'./.env'})
 connectDb();
-
-const app=express();
 
 app.use(bodyParser.json())
 app.use(express.static(`${__dirname}/public`))

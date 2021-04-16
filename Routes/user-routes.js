@@ -53,5 +53,7 @@ route.patch('/resetPassword/:token',[
     not().
     isEmpty(),
 ],userRoutes.updatePassword)
+route.patch('/updateMe',userRoutes.updateMe)
+route.delete('/deleteMe',userRoutes.deleteMe)
 
 module.exports=route
