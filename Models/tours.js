@@ -1,6 +1,7 @@
 // const { truncate } = require('fs/promises')
 const slugify=require('slugify')
 const mongoose =require('mongoose')
+const User =require('./users')
 const validator =require('validator')
 tourSchema=new mongoose.Schema({
     name:{
@@ -88,6 +89,51 @@ tourSchema=new mongoose.Schema({
     startDates:{
         type:[Date],
     },
+    startLocation:{
+        //GeoJSON data first latitude and then longitude
+        type:{
+            type:String,
+            default:'Point',
+            enum:['Point']
+        },
+        coordinates:[Number],
+        address:String,
+        description:String
+    },
+    //For embeded/denormalized User means save document not just Id
+    
+    // I comment this code because this is the example of teh embedded document that we embed the guide array to tour document but we have to do it as refrencing for better approach
+
+    // guides:Array,
+
+    // For noramization or refrencing
+    guides:[
+        {
+            type:mongoose.Schema.ObjectId,
+             ref:'User'
+        }
+    ],
+    locations:[
+        {
+            type:{
+                type:String,
+                default:'Point',
+                enum:['Point']
+            },
+            coordinates:[Number],
+        address:String,
+        description:String,
+        day:Number
+        }
+    ],
+
+    // we do this below in virtualPopulate below
+    // reviews:[
+    //     {
+    //         type:mongoose.Schema.ObjectId,
+    //         ref:'Review'
+    //     }
+    // ]
 },{
     // It means every time we send ther data to JSON or object so it shows the vitual properties in the response
     toJSON:{virtuals:true},
@@ -98,12 +144,40 @@ tourSchema.virtual('durationWeeks').get(function(){
     return this.duration/7
 })
 
+//Virtual Populate (means while doing parent refrencing between tour and review schema so we implented the objectId of tour in review shema and then we have to reference the revie in tour schema in order to know about reviews of the tour so we are doing virtual populate that instead of the array of reviews d in tour schema we do virtual populate)
+tourSchema.virtual('reviews',{
+    ref:'Review', //Schema name
+    foreignField:'tour', // Shema name
+    localField:'_id' // id of revies in which we want to populate
+})
+
 // There are four types of mongoose middleware document, query, aggregate and model
 //Document middleware(pre): runs before.save() and .create() not for insertMany or etc
 tourSchema.pre('save',function(next){
     this.slug=slugify(this.name,{lower:true})
     next()
 })
+
+// I comment this code because this is the example of teh embedded document that we embed the guide array to tour document but we have to do it as refrencing for better approach
+
+//For embeded/denormalized User means save document not just Id
+// this only works on save document
+// tourSchema.pre('save',function(next){
+//     const guidePromises=this.guides.map(async id=>await User.findById(id));
+//     this.guides=await Promise.all(guidePromises)
+//     next()
+// })
+
+// I comment this code because this is the example of teh embedded document that we embed the guide array to tour document but we have to do it as refrencing for better approach
+
+//For embeded/denormalized User means save document not just Id
+// this only works on find document
+// tourSchema.pre(/^find/,function(next){
+//     const guidePromises=this.guides.map(async id=>await User.findById(id));
+//     this.guides=await Promise.all(guidePromises)
+//     next()
+// })
+
 tourSchema.pre('save',function(next){
     console.log("Will save Document")
     next()

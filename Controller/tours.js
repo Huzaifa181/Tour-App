@@ -1,15 +1,20 @@
-const httpError=require("../utils/http-error")
 const Tour=require('../Models/tours')
 const {validationResult}=require("express-validator")
 const User=require('../Models/users')
 const fs=require('fs')
+const httpError=require("../utils/http-error")
 const mongoose=require('mongoose')
 
 const getTourByUser=async (req,res,next)=>{
     const id=req.params.uid
     let identifiedTour;
     try{
-        identifiedTour=await Tour.find({creator:id})
+        // if you want to populate in ll request of find so use this.populate in the mongoose middleware using /^find/
+        identifiedTour=await Tour.find({creator:id}).populate(
+            {
+                path:'guides',
+                select:'-__v -passwordChangedAt'
+            })
     }
     catch(err){
         const error=new httpError("Fatching Tours Failed, Could not find Tour",401)
@@ -28,7 +33,7 @@ const getParticularTour=async (req,res,next)=>{
     const id=req.params.pid
     let identifiedTour;
     try{
-        identifiedTour=await Tour.findById(id)
+        identifiedTour=await Tour.findById(id).populate('reviews')
     }
     catch(err){
         

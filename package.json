@@ -16,9 +16,11 @@
     "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "express-mongo-sanitize": "^2.0.2",
     "express-rate-limit": "^5.2.6",
     "express-validator": "^6.10.0",
     "helmet": "^4.4.1",
+    "hpp": "^0.2.3",
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^3.6.5",
     "mongoose": "^5.12.1",
@@ -27,7 +29,8 @@
     "nodemailer": "^6.5.0",
     "slugify": "^1.5.0",
     "uuid": "^8.3.2",
-    "validator": "^13.5.2"
+    "validator": "^13.5.2",
+    "xss-clean": "^0.1.1"
   },
   "devDependencies": {
     "ndb": "^1.1.5",
