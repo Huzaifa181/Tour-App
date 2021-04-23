@@ -7,6 +7,7 @@ const {fileUpload}=require('../midllewares/file-upload');
 const route=express.Router();
 
 route.get('/',userRoutes.getAllUsers)
+
 route.post('/signup',
         fileUpload.single('image'),
         [
@@ -20,6 +21,7 @@ route.post('/signup',
             not().
             isEmpty()
         ],userRoutes.signUp)
+
 route.post('/login',
 [
     check('email').
@@ -28,11 +30,13 @@ route.post('/login',
     not().
     isEmpty(),
 ],userRoutes.login)
+
 route.post('/forgotPassword',
 [
     check('email').
     isEmail(),
 ],userRoutes.forgotPassword)
+
 route.patch('/resetPassword/:token',[
     check('password').
     not().
@@ -41,7 +45,9 @@ route.patch('/resetPassword/:token',[
     not().
     isEmpty(),
 ],userRoutes.resetPassword)
+
 route.use(checkAuth);
+
 route.patch('/resetPassword/:token',[
     check('passwordCurrent').
     not().
@@ -53,6 +59,8 @@ route.patch('/resetPassword/:token',[
     not().
     isEmpty(),
 ],userRoutes.updatePassword)
+
+route.get('/me',userRoutes.updateMe)
 route.patch('/updateMe',userRoutes.updateMe)
 route.delete('/deleteMe',userRoutes.deleteMe)
 

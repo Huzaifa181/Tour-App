@@ -235,7 +235,7 @@ const updateParticularTour=async (req,res,next)=>{
 }
 const deleteParticularTour=async (req,res,next)=>{
     const pid=req.params.pid
-    let tour;
+    var tour;
     try{
         tour=await Tour.findByIdAndDelete(pid)
         res.status(200).json({
@@ -248,12 +248,27 @@ const deleteParticularTour=async (req,res,next)=>{
         return next(error)
     }
 }
+const aliasTopTours=(req,res,next)=>{
+    req.query.limit='5';
+    req.query.sort='-ratingAverage,price',
+    req.query.fields='name,price,ratingAverage,summary,difficulty',
+    next()
+}
 
+// /tours-within/:distance/center/:latlng/unit/:unit
+// /tours-within/233/center/345.11,-34.47/unit/mi
+ const getTourWithin=(req,res,next)=>{
+    const {distance,latlng,unit}=req.params
+    const {lat,lng}=latlng.split(',');
+    // if()
+ }
 exports.getAllTours=getAllTours
 exports.getParticularTour=getParticularTour
 exports.updateParticularTour=updateParticularTour
 exports.deleteParticularTour=deleteParticularTour
 exports.getTourByUser=getTourByUser
 exports.getTourStats=getTourStats
+exports.aliasTopTours=aliasTopTours
 exports.createTour=createTour
 exports.getMonthlyPlans=getMonthlyPlans
+exports.getTourWithin=getTourWithin

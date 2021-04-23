@@ -139,6 +139,11 @@ tourSchema=new mongoose.Schema({
     toJSON:{virtuals:true},
     toObject:{virtuals:true},
 })
+
+//Indexing
+tourSchema.index({price:1,ratingAverage:-1})
+tourSchema.index({slug:1})
+
 //virtual property means make the field by calculation of the other field
 tourSchema.virtual('durationWeeks').get(function(){
     return this.duration/7
@@ -146,9 +151,9 @@ tourSchema.virtual('durationWeeks').get(function(){
 
 //Virtual Populate (means while doing parent refrencing between tour and review schema so we implented the objectId of tour in review shema and then we have to reference the revie in tour schema in order to know about reviews of the tour so we are doing virtual populate that instead of the array of reviews d in tour schema we do virtual populate)
 tourSchema.virtual('reviews',{
-    ref:'Review', //Schema name
-    foreignField:'tour', // Shema name
-    localField:'_id' // id of revies in which we want to populate
+    ref:'Review', //Foreign Schema name
+    foreignField:'tour', // Foreign field of Foreign Schema
+    localField:'_id' // store the _id in foreign field of Foreign Schema
 })
 
 // There are four types of mongoose middleware document, query, aggregate and model

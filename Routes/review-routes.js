@@ -4,15 +4,15 @@ const {check}= require("express-validator");
 const checkAuth=require('../midllewares/check-auth');
 const {restrictTo}=require('../midllewares/restrictUserRolesPermission');
 
-const router=express.Router()
+const route=express.Router({mergeParams:true})
 
+route.route('/').
+get(reviewController.getAllReviews)
 
-router.route('/').
-get(reviewController.getAllReviews).
-post(
-    checkAuth,
-    restrictTo('user'),
-    reviewController.createReview,
-    
-    )
-module.exports=router
+//For Protected Route
+route.use(checkAuth)
+
+route.post(restrictTo('user'),reviewController.createReview,)
+route.delete(reviewController.deleteReview)
+route.patch(reviewController.updateReview)
+module.exports=route
