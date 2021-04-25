@@ -36,6 +36,7 @@ tourSchema=new mongoose.Schema({
         //min and max is also use for dates
         max:[1,"A rating average must greater than 1.0"],
         min:[1,"A rating average must less than 5.0"],
+        set:val=>Math.round(val*10)/10
     },
     ratingQuantity:{
         type:Number,
@@ -143,6 +144,7 @@ tourSchema=new mongoose.Schema({
 //Indexing
 tourSchema.index({price:1,ratingAverage:-1})
 tourSchema.index({slug:1})
+tourSchema.index({startLocation:'2dsphere'})
 
 //virtual property means make the field by calculation of the other field
 tourSchema.virtual('durationWeeks').get(function(){
@@ -208,8 +210,9 @@ tourSchema.post(/^find/,function(doc,next){
 })
 
 //Aggregation middleware(post): runs after only for .find(),.findById() and etc
-tourSchema.pre('aggregate',function(next){
-    this.pipeline().unshift({$match:{secretTour:{$ne:true}}})
-    next()
-})
+
+// tourSchema.pre('aggregate',function(next){
+//     this.pipeline().unshift({$match:{secretTour:{$ne:true}}})
+//     next()
+// })
 module.exports=mongoose.model("tours",tourSchema)

@@ -33,6 +33,9 @@ reviewSchema=new mongoose.Schema({
     toObject:{virtuals:true},
 })
 
+// combination of user and tour must be unique means one tour has only one review for particular user
+reviewSchema.index({tour:1,user:1},{unique:true})
+
 // For calculate avrage rating of the reviews
 reviewSchema.statics.calculateAverage=async (tourID)=>{
     const stats=await this.aggregate([

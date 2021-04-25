@@ -255,13 +255,68 @@ const aliasTopTours=(req,res,next)=>{
     next()
 }
 
+// working with geospecial query
 // /tours-within/:distance/center/:latlng/unit/:unit
 // /tours-within/233/center/345.11,-34.47/unit/mi
+// You must add the index of the startLocation in tour model file
  const getTourWithin=(req,res,next)=>{
     const {distance,latlng,unit}=req.params
     const {lat,lng}=latlng.split(',');
-    // if()
+
+    // 3963.2 is th radius of the earth in miles and 6378.1 is the radius of the earth in km
+    const radius=unit==='mi'?distance/3963.2 : distance/6378.1;
+
+    if(!lat || !lng){
+        const error=new httpError("Please provide lat and lng in the format lat,lng",401)
+            return next(error)
+    }
+    const tours=Tour.find({startLocation:{$geoWithin:{$centerSphere:[[lng,lat],radius]}}})
+    res.status(200).json({
+        status:'success',
+        results:tours.length,
+        data:{
+            data:tours
+        }
+    })
  }
+  
+// means distace between all the tours from particular point
+// You must add the index of the startLocation in tour model file
+ const getDistances=async()=>{
+    const {latlng,unit}=req.params
+    const {lat,lng}=latlng.split(',');
+
+    if(!lat || !lng){
+        const error=new httpError("Please provide lat and lng in the format lat,lng",401)
+            return next(error)
+    }
+    // it gives the distance always in meters
+    const distances=await Tour.aggregate([
+        {
+            // It must be in the first position
+            $geoNear:{
+                $near:{
+                    type:'Point',
+                    coordinates:[lng*1,lat*1]
+                },
+                //distance is the field which we create only here to show all doc in the distance field
+                distanceField:'distance',
+                distanceMultiplier:0.001 // for give the result in km
+            }
+            } ,{
+                $project:{
+                   distance:1,
+                   name:1
+                }
+        }
+    ])
+    res.status(200).json({
+        status:'success',
+        data:{
+            data:distances
+        }
+    })
+ } 
 exports.getAllTours=getAllTours
 exports.getParticularTour=getParticularTour
 exports.updateParticularTour=updateParticularTour
@@ -272,3 +327,4 @@ exports.aliasTopTours=aliasTopTours
 exports.createTour=createTour
 exports.getMonthlyPlans=getMonthlyPlans
 exports.getTourWithin=getTourWithin
+exports.getDistances=getDistances

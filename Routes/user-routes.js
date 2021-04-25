@@ -1,6 +1,7 @@
 const express= require("express");
 const userRoutes=require('../Controller/users');
 const checkAuth=require('../midllewares/check-auth');
+const {resizeUserPhoto}=require('../midllewares/resizeUserPhoto');
 const {check}= require("express-validator");
 const {fileUpload}=require('../midllewares/file-upload');
 
@@ -9,7 +10,6 @@ const route=express.Router();
 route.get('/',userRoutes.getAllUsers)
 
 route.post('/signup',
-        fileUpload.single('image'),
         [
             check('name').
             not().
@@ -60,8 +60,8 @@ route.patch('/resetPassword/:token',[
     isEmpty(),
 ],userRoutes.updatePassword)
 
-route.get('/me',userRoutes.updateMe)
-route.patch('/updateMe',userRoutes.updateMe)
+route.get('/me',fileUpload.single('photo'),resizeUserPhoto,userRoutes.updateMe)
+route.patch('/updateMe',fileUpload.single('photo'),userRoutes.updateMe)
 route.delete('/deleteMe',userRoutes.deleteMe)
 
 module.exports=route

@@ -78,6 +78,10 @@ const signUp=async (req,res,next)=>{
         return next(error)
     }
 
+    // send email
+    const url=`${req.protocol}://${req.get('host')}/me`
+    await new Email(newUser,url).sendWelcome()
+
     let token;
     try{
         token=await jwt.sign({
@@ -189,11 +193,12 @@ const forgotPassword=async (req,res,next)=>{
     const message=`Forgot your password? Submit a PATCH request with your new password and password confirm to: ${resetUrl}. \nIf you didn't forget your password, please ignore this email!`
     try{
 
-        await sendEmail({
-            email:user.email,
-            subject:'Your password reset token (valid for 10 min)',
-            message
-        })
+        // await sendEmail({
+        //     email:user.email,
+        //     subject:'Your password reset token (valid for 10 min)',
+        //     message
+        // })
+        await new Email(user,resetUrl).sendPasswordReset
         res.status(200).json({
             status:'success',
             message :'token sent to email!'
@@ -320,6 +325,7 @@ const updateMe=async (req,res,next)=>{
         //2) Filtered Out unwanted field nammes that are not allowed to be updated
         const filteredBody=filterObj(req.body,'name','email')
 
+        if(req.file) filteredBody.photo=req.file.filename
         // 3) Update user document
         const updateUser=await Users.findByIdAndUpdate(req.user.id,filteredBody,{
             new:true,

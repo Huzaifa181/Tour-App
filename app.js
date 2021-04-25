@@ -4,7 +4,9 @@ const rateLimit= require("express-rate-limit");
 const bodyParser= require("body-parser");
 const userRoutes= require("./Routes/user-routes");
 const tourRoutes= require("./Routes/tour-routes");
+const bookingRoutes= require("./Routes/booking-routes");
 const reviewRoutes= require("./Routes/review-routes");
+const errorController=require('./Controller/error')
 const mongoSanitize=require("express-mongo-sanitize");
 const xss=require("xss-clean");
 const hpp=require("hpp");
@@ -13,6 +15,7 @@ const fs=require('fs');
 const path=require('path');
 const helmet=require('helmet');
 const dotenv=require('dotenv');
+
 
 const app=express();
 
@@ -28,7 +31,6 @@ const limiter=rateLimit({
 })
 app.use('/api',limiter)
 
-const errorController=require('./Controller/error')
 // To handled uncaughtException like programming error in the app.
 process.on('uncaughtException',err=>{
     console.log(err)
@@ -84,6 +86,7 @@ app.use((req,res,next)=>{
 app.use('/api/tours',tourRoutes)
 app.use('/api/users',userRoutes)
 app.use('/api/reviews',reviewRoutes)
+app.use('/api/booking',bookingRoutes)
 app.all('*',(req,res,next)=>{
     throw new httpError(`Could Not Find ${req.originalUrl} Route`,404);
 })
