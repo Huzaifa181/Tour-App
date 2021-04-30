@@ -50,7 +50,7 @@ const userSchema=new mongoose.Schema({
 userSchema.plugin(uniqueValidator)
 //Document middleware(pre): runs before.save() and .create() not for insertMany or etc
 userSchema.pre('save', async function(next){
-    //Only run this function if password was actually modified
+    //Only run this function if password was not actually modified
     if(!this.isModified('password')) return next();
 
     //Hash the password with cost of 12
@@ -88,7 +88,7 @@ userSchema.methods.changePasswordAfter=function(JWTTimestamp){
     if(this.passwordChangedAt){
         const changedTimeStamp=parseInt(
             this.passwordChangedAt.getTime()/1000,10
-        ) 
+        )
         return JWTTimestamp < changedTimeStamp
     }
 

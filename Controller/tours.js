@@ -36,7 +36,6 @@ const getParticularTour=async (req,res,next)=>{
         identifiedTour=await Tour.findById(id).populate('reviews')
     }
     catch(err){
-        
         const error=new httpError("Something went wrong, Could not Find Tour",500)
         return next(error)
     }
